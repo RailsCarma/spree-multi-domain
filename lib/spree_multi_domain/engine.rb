@@ -23,7 +23,11 @@ module SpreeMultiDomain
           store_layout = layout
 
           if @view.respond_to?(:current_store) && @view.current_store && !@view.controller.is_a?(Spree::Admin::BaseController)
-            store_layout = layout.call.gsub("layouts/", "layouts/#{@view.current_store.code}/")
+            store_layout = if layout.is_a?(String)
+              layout.gsub("layouts/", "layouts/#{@view.current_store.code}/")
+            else
+              layout.call.try(:gsub, "layouts/", "layouts/#{@view.current_store.code}/")
+            end
           end
 
           begin
@@ -43,7 +47,7 @@ module SpreeMultiDomain
         def current_order_with_multi_domain(create_order_if_necessary = false)
           current_order_without_multi_domain(create_order_if_necessary: create_order_if_necessary)
 
-          if @current_order and current_store and @current_order.store.nil?
+          if @current_order and current_store and @current_order.store.blank?
             @current_order.update_attribute(:store_id, current_store.id)
           end
 
@@ -58,3 +62,4 @@ module SpreeMultiDomain
     end
   end
 end
+
